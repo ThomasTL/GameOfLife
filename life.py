@@ -88,7 +88,7 @@ def main():
         # print_matrix(grid, population)
         draw_grid(grid)
         # Slow down the process
-        # time.sleep(0.1)
+        time.sleep(0.1)
 
     win.getMouse()
     win.close()
