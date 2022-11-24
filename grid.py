@@ -8,19 +8,19 @@ class Grid():
         self.cellSize = cellSize
         self.gridWidth = self.columns * self.cellSize
         self.win = win
-        self.grid = [[Cell() for i in range(self.columns)] for j in range(self.columns)]
+        self.cells = [[Cell() for i in range(self.columns)] for j in range(self.columns)]
 
     def initRandGrid(self) -> None:
-        # Random initialization of the grid
+        # Random initialization of all the cells
         for row in range(self.columns):
             for col in range(self.columns):
                 if row != 0 and row != self.columns - 1 and col != 0 and col != self.columns - 1:
                     if randint(a=0, b=1) == 1:
-                        self.grid[row][col].isAlive = True
-                        self.grid[row][col].stateHasChanged = True
+                        self.cells[row][col].isAlive = True
+                        self.cells[row][col].stateHasChanged = True
                     else:
-                        self.grid[row][col].isAlive = False
-                        self.grid[row][col].stateHasChanged = True
+                        self.cells[row][col].isAlive = False
+                        self.cells[row][col].stateHasChanged = True
 
     def initGridWithShape(self, shape: str) -> None:
         pass
@@ -39,12 +39,12 @@ class Grid():
             
             cellToDraw.draw(self.win)
     
-    def drawGrid(self) -> None:
+    def drawCells(self) -> None:
         for row in range(self.columns):
             for col in range(self.columns):
                 x = row * self.cellSize
                 y = col * self.cellSize
-                self.drawCell(x, y, self.grid[row][col])
+                self.drawCell(x, y, self.cells[row][col])
         # Refresh the window 
         update(30)
 
