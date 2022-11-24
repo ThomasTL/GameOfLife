@@ -1,3 +1,5 @@
 /.venv
 graphics_demo.py
 __pycache__/graphics.cpython-310.pyc
+__pycache__/cell.cpython-310.pyc
+__pycache__/grid.cpython-310.pyc
