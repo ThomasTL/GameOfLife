@@ -22,6 +22,17 @@ class Grid():
                         self.cells[row][col].isAlive = False
                         self.cells[row][col].stateHasChanged = True
 
+    def setCellColor(self, colors: list, distMode: str) -> None:
+        for row in range(self.columns):
+            for col in range(self.columns):
+                if row != 0 and row != self.columns - 1 and col != 0 and col != self.columns - 1:
+                    if distMode == "rand":
+                        colorId = randint(a=0, b=len(colors) - 1)
+                        self.cells[row][col].color = colors[colorId]
+                        self.cells[row][col].dna = colorId
+                    elif distMode == "equal":
+                        pass
+
     def initGridWithShape(self, shape: str) -> None:
         pass
 
@@ -33,7 +44,7 @@ class Grid():
 
             # Living cell in black, dead cell in white
             if cell.isAlive:
-                cellToDraw.setFill("black")
+                cellToDraw.setFill(color_rgb(cell.color[0], cell.color[1], cell.color[2]))
             else:
                 cellToDraw.setFill("white")
             
@@ -48,6 +59,16 @@ class Grid():
         # Refresh the window 
         update(30)
 
+    def printCellsToConsole(self) -> None:
+        for row in range(self.columns):
+            line = ""
+            for col in range(self.columns):
+                cell = " "
+                if self.cells[row][col].isAlive:
+                    cell = str(self.cells[row][col].dna)
+                line += cell + " "
+            print(line)
+        print()
 
 # def shapes(grid, shape):
 #     if shape == "SHAPE_1":
