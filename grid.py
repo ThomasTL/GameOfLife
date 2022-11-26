@@ -10,7 +10,8 @@ class Grid():
         self.win = win
         self.cells = [[Cell() for i in range(self.columns)] for j in range(self.columns)]
 
-    def initRandGrid(self) -> None:
+    def initRandGrid(self) -> int:
+        cellPopulation = 0
         # Random initialization of all the cells
         for row in range(self.columns):
             for col in range(self.columns):
@@ -18,18 +19,22 @@ class Grid():
                     if randint(a=0, b=1) == 1:
                         self.cells[row][col].isAlive = True
                         self.cells[row][col].stateHasChanged = True
+                        cellPopulation += 1
                     else:
                         self.cells[row][col].isAlive = False
                         self.cells[row][col].stateHasChanged = True
+        return cellPopulation
 
     def setCellColor(self, colors: list, distMode: str) -> None:
         for row in range(self.columns):
             for col in range(self.columns):
                 if row != 0 and row != self.columns - 1 and col != 0 and col != self.columns - 1:
                     if distMode == "rand":
-                        colorId = randint(a=0, b=len(colors) - 1)
-                        self.cells[row][col].color = colors[colorId]
-                        self.cells[row][col].dna = colorId
+                        if self.cells[row][col].isAlive:
+                            colorId = randint(a=0, b=len(colors) - 1)
+                            self.cells[row][col].color = colors[colorId]
+                            self.cells[row][col].dna = colorId
+                            # self.cells[row][col].addDna(colorId)
                     elif distMode == "equal":
                         pass
 
@@ -60,15 +65,32 @@ class Grid():
         update(30)
 
     def printCellsToConsole(self) -> None:
+        print("\n---=== Cell population Start ===---")
         for row in range(self.columns):
             line = ""
             for col in range(self.columns):
-                cell = " "
+                cell = "."
                 if self.cells[row][col].isAlive:
+                    # cell = str(self.cells[row][col].dna[0])
                     cell = str(self.cells[row][col].dna)
-                line += cell + " "
+                line += cell + "."
             print(line)
         print()
+        print("---=== Cell population End ===---")
+
+    def writeCellsToFile(self, file) -> None:
+        file.write("\n---=== Cell population Start ===---\n")
+        for row in range(self.columns):
+            line = ""
+            for col in range(self.columns):
+                cell = "."
+                if self.cells[row][col].isAlive:
+                    # cell = str(self.cells[row][col].dna[0])
+                    cell = str(self.cells[row][col].dna)
+                line += cell + "."
+            line += "\n"
+            file.write(line)        
+        file.write("---=== Cell population End ===---\n")
 
 # def shapes(grid, shape):
 #     if shape == "SHAPE_1":
