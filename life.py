@@ -5,9 +5,8 @@ from random import *
 import time
 
 # PyQT imports
-from PyQt6.QtCore import Qt, QObject, QThread, pyqtSignal
-from PyQt6.QtCore import QReadWriteLock
-from PyQt6.QtGui import QPainter, QBrush, QPen, QColor, QPaintEvent
+from PyQt6.QtCore import Qt, QObject, QThread, pyqtSignal, QSize, QReadWriteLock
+from PyQt6.QtGui import QPainter, QBrush, QPen, QColor, QPaintEvent, QAction, QIcon
 from PyQt6.QtWidgets import (
     QApplication,
     QLabel,
@@ -15,14 +14,16 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QVBoxLayout,
     QWidget,
+    QToolBar,
+    QStatusBar
 )
 
 # Game of Life related class imports
 from cell import *
 
 # Game of Life constant parameters
-columns = 70
-cellSize = 10
+columns = 120
+cellSize = 7
 genNumber = 5000
 colors = ["#000000"]
 # colors = ["#0000FF", "#00FF00"]
@@ -65,6 +66,9 @@ class CalcGenerationsWorker(QObject):
         self.finished.emit()
 
 class GolWindow(QMainWindow):
+    toolbarHeight = 26
+    statusbarHeight = 25
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi()
@@ -75,20 +79,59 @@ class GolWindow(QMainWindow):
         self.top= 550
         self.left= 50
         self.width = columns * cellSize
-        self.height = columns * cellSize
+        self.height = (columns * cellSize) + (self.toolbarHeight + self.statusbarHeight)
         self.InitWindow()
-        self.runLongTask()
+        self.runGenerations()
 
     def InitWindow(self):
         self.setWindowTitle(self.title)        
         self.setGeometry(self.top, self.left, self.width, self.height)
-        self.setFixedSize(self.size())
+        self.setFixedSize(self.size()) 
+
+        # Define actions to be used in toolbar and menus
+        runGen = QAction(QIcon("./icons/control.png"), "&Your button", self)
+        # runGen.setStatusTip("This is your button")
+        runGen.triggered.connect(self.onMyToolBarButtonClick)
+        pauseGen = QAction(QIcon("./icons/control-pause.png"), "Your button&2", self)
+        # pauseGen.setStatusTip("This is your button 2")
+        pauseGen.triggered.connect(self.onMyToolBarButtonClick)   
+        stopGen = QAction(QIcon("./icons/control-stop-square.png"), "Your button&3", self)
+        # stopGen.setStatusTip("This is your button 3")
+        stopGen.triggered.connect(self.onMyToolBarButtonClick)      
+        openFile = QAction(QIcon("./icons/folder-horizontal-open.png"), "Your button&3", self)
+        # openFile.setStatusTip("This is your button 3")
+        openFile.triggered.connect(self.onMyToolBarButtonClick)    
+        saveFile = QAction(QIcon("./icons/disk.png"), "Your button&3", self)
+        # saveFile.setStatusTip("This is your button 3")
+        saveFile.triggered.connect(self.onMyToolBarButtonClick)                     
+        
+        # Toobar initialization
+        toolbar = QToolBar("My main toolbar")
+        toolbar.setIconSize(QSize(16,16))
+        toolbar.setMovable(False)
+        self.addToolBar(toolbar)         
+        toolbar.addAction(runGen)
+        toolbar.addAction(pauseGen) 
+        toolbar.addAction(stopGen) 
+        toolbar.addSeparator()
+        toolbar.addAction(openFile) 
+        toolbar.addAction(saveFile) 
+
+        # Status bar initialization
+        self.statusBar = QStatusBar(self)
+        self.statusBar.showMessage("Pipolaki popol")
+        self.setStatusBar(self.statusBar)
+
         self.show()        
 
+    def onMyToolBarButtonClick(self, s):
+        print("click", s)
+
     def drawGeneration(self, n):
+        self.statusBar.showMessage("Generation: " + str(n))
         self.update()
 
-    def runLongTask(self):
+    def runGenerations(self):
         self.thread = QThread()
         self.worker = CalcGenerationsWorker()
         self.worker.moveToThread(self.thread)
@@ -113,7 +156,7 @@ class GolWindow(QMainWindow):
                 elif cell.isAlive == False:
                     color = "#FFFFFF"
                 painter.setBrush(QBrush(QColor(color), Qt.BrushStyle.SolidPattern))
-                painter.drawRect(cellSize * row, cellSize * col, cellSize, cellSize)
+                painter.drawRect((cellSize * row), self.toolbarHeight + (cellSize * col), cellSize, cellSize)
         lock.unlock()
         return super().paintEvent(a0)        
 
