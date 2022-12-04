@@ -1,9 +1,13 @@
+from graphics import *
+from random import *
+from copy import *
 
 class Cell():
     def __init__(self):
         self.isAlive = False
         self.stateHasChanged = False
-        self.color = [0, 0, 0]
+        # self.color = [0, 0, 0]
+        self.color = "#000000"
         self.dna = 0
         # self.dna = []
 
@@ -17,3 +21,105 @@ class Cell():
                 hasdna = True
         return hasdna
 
+class CellGrid():
+    def __init__(self, columns, colors) -> None:
+        self.columns = columns
+        self.colors = colors
+        self.cells = [[Cell() for i in range(self.columns)] for j in range(self.columns)]
+        self.cellPopulation = self.initRandGrid()
+        self.setCellColor("rand")
+    
+    def initRandGrid(self) -> int:
+        cellPopulation = 0
+        # Random initialization of all the cells
+        for row in range(self.columns):
+            for col in range(self.columns):
+                if row != 0 and row != self.columns - 1 and col != 0 and col != self.columns - 1:
+                    if randint(a=0, b=1) == 1:
+                        self.cells[row][col].isAlive = True
+                        self.cells[row][col].stateHasChanged = True
+                        cellPopulation += 1
+                    else:
+                        self.cells[row][col].isAlive = False
+                        self.cells[row][col].stateHasChanged = True
+        return cellPopulation    
+
+    def setCellColor(self, distMode: str) -> None:
+        for row in range(self.columns):
+            for col in range(self.columns):
+                if row != 0 and row != self.columns - 1 and col != 0 and col != self.columns - 1:
+                    if distMode == "rand":
+                        if self.cells[row][col].isAlive:
+                            colorId = randint(a=0, b=len(self.colors) - 1)
+                            self.cells[row][col].color = self.colors[colorId]
+                            self.cells[row][col].dna = colorId
+                            # self.cells[row][col].addDna(colorId)
+                    elif distMode == "equal":
+                        pass
+
+    def getCell(self, col: int, row: int) -> Cell:
+        return self.cells[row][col]
+
+    def getCellPopulation(self) -> int:
+        return self.cellPopulation
+
+    def outputCellGrid(self) -> str:
+        output = "\n---=== Cell population Start ===---\n"
+        for row in range(self.columns):
+            line = ""
+            for col in range(self.columns):
+                cell = "."
+                if self.cells[row][col].isAlive:
+                    # cell = str(self.cells[row][col].dna[0])
+                    cell = str(self.cells[row][col].dna)
+                line += cell + "."
+            output += line + "\n"
+        output += "---=== Cell population End ===---"
+        return output
+
+    def nextGeneration(self) -> None:
+        # Running Game of life rules
+        # https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
+        old_cells = deepcopy(self.cells)
+        for row in range(1, self.columns-1):
+            for col in range(1, self.columns-1):
+                living_neighbours = 0
+                living_neighbours_dna = [0 for i in range(len(self.colors))]
+                # Count the living neighbours around old_cells[row][col]
+                for row_eval in range(row-1, row+2):
+                    for col_eval in range(col-1, col+2):
+                        # Do not evaluate the reference cell
+                        if not(row == row_eval and col == col_eval):
+                            if old_cells[row_eval][col_eval].isAlive and old_cells[row][col].isAlive == True:
+                                if old_cells[row][col].dna == old_cells[row_eval][col_eval].dna:
+                                    living_neighbours += 1
+                            elif old_cells[row_eval][col_eval].isAlive and old_cells[row][col].isAlive == False:
+                                living_neighbours_dna[old_cells[row_eval][col_eval].dna] += 1
+
+                # Search if dead cell has exactly 3 neighbours with the same dna and take the first one we find in the list
+                dnaId = 0
+                foundThreeLivingNeighbours = False
+                for i in living_neighbours_dna:
+                    if i == 3:
+                        dnaId = living_neighbours_dna.index(i)
+                        foundThreeLivingNeighbours = True
+                        break
+
+                # Check game of life rules
+                if old_cells[row][col].isAlive == True and (living_neighbours < 2 or living_neighbours > 3):
+                    self.cells[row][col].isAlive = False
+                    self.cells[row][col].stateHasChanged = True
+
+                elif old_cells[row][col].isAlive == True and (living_neighbours == 2 or living_neighbours == 3):
+                    self.cells[row][col].isAlive = old_cells[row][col].isAlive
+                    self.cells[row][col].stateHasChanged = False
+
+                elif old_cells[row][col].isAlive == False and foundThreeLivingNeighbours == True:
+                    self.cells[row][col].isAlive = True
+                    self.cells[row][col].stateHasChanged = True
+                    self.cells[row][col].dna = dnaId
+                    self.cells[row][col].color = self.colors[dnaId]
+
+                else:
+                    self.cells[row][col].isAlive = old_cells[row][col].isAlive
+                    self.cells[row][col].stateHasChanged = False

@@ -1,5 +1,7 @@
 /.venv
 /__pycache__
 /config
+/config2
+/config.bak
 graphics_demo.py
 life.py.bak
