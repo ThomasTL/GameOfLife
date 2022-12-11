@@ -1,4 +1,4 @@
-from graphics import *
+# from graphics import *
 from random import *
 from copy import *
 
@@ -29,6 +29,13 @@ class CellGrid():
         self.cellPopulation = self.initRandGrid()
         self.setCellColor("rand")
     
+    def reInit(self, columns, colors):
+        self.columns = columns
+        self.colors = colors
+        self.cells = [[Cell() for i in range(self.columns)] for j in range(self.columns)]
+        self.cellPopulation = self.initRandGrid()
+        self.setCellColor("rand")
+
     def initRandGrid(self) -> int:
         cellPopulation = 0
         # Random initialization of all the cells
