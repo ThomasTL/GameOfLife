@@ -24,7 +24,7 @@ from cell import *
 # Game of Life constant parameters
 columns = 70
 genNumber = 10000
-colors = [["#000000"], ["#0000FF", "#00FF00"], ["#0000FF", "#00FF00", "#FF0000"]]
+# colors = [["#000000"], ["#0000FF", "#00FF00"], ["#0000FF", "#00FF00", "#FF0000"]]
 tempo = 0.1
 
 # Create the log path and log file to save the Game of Life starting parameters
@@ -37,7 +37,7 @@ if not os.path.exists(confFilePath):
 # confFile = open(fileName, "w")
 
 # Create the grid containing the cells and initialize all cells
-cellGrid = CellGrid(columns, colors[0])
+cellGrid = CellGrid(columns, 0)
 # Create a read/write lock needed to synchronize next generation calculation and refreshing the UI
 lock = QReadWriteLock() 
 
@@ -131,7 +131,8 @@ class GolWindow(QMainWindow):
         self.show()        
 
     def onChangePopulation(self, index):
-        cellGrid.colors = colors[index]
+        # cellGrid.colors = colors[index]
+        cellGrid.setPopulation(index)
         cellGrid.setCellColor("rand")
         self.update()
 
@@ -140,7 +141,7 @@ class GolWindow(QMainWindow):
         # TODO: Below 4 lines of code should be placedin a function
         self.cellSize = int(800 / self.columns)
         self.setFixedSize(QSize((self.columns * self.cellSize), ((self.columns * self.cellSize) + (self.toolbarHeight + self.statusbarHeight)))) 
-        cellGrid.reInit(self.columns, colors[self.populationComboBox.currentIndex()])
+        cellGrid.reInit(self.columns, self.populationComboBox.currentIndex())
         self.update()
 
     def onClickStopBtn(self, s):
@@ -164,6 +165,9 @@ class GolWindow(QMainWindow):
                 self.columns = cellGrid.columns
                 self.cellSize = int(800 / self.columns)
                 self.setFixedSize(QSize((self.columns * self.cellSize), ((self.columns * self.cellSize) + (self.toolbarHeight + self.statusbarHeight))))  
+                # TODO: Show to correct combo box current value after loading new file data
+                # self.populationComboBox.setCurrentIndex()
+                # self.gridSizeComboBox.setCurrentIndex()
                 self.update()               
                 file.close()
 

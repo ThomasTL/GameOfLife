@@ -3,6 +3,8 @@ from random import *
 from copy import *
 import json
 
+populations = [["#000000"], ["#0000FF", "#00FF00"], ["#0000FF", "#00FF00", "#FF0000"]]
+
 # TODO: To use @dataclass decorator for Cell class
 class Cell():
     def __init__(self):
@@ -23,16 +25,18 @@ class Cell():
         return hasdna
 
 class CellGrid():
-    def __init__(self, columns, colors) -> None:
+    def __init__(self, columns, population) -> None:
         self.columns = columns
-        self.colors = colors
+        self.setPopulation(population)
+        # self.colors = populations[population]
         self.cells = [[Cell() for i in range(self.columns)] for j in range(self.columns)]
         self.cellPopulation = self.initRandGrid()
         self.setCellColor("rand")
     
-    def reInit(self, columns, colors):
+    def reInit(self, columns, population):
         self.columns = columns
-        self.colors = colors
+        # self.colors = colors
+        self.setPopulation(population)
         self.cells = [[Cell() for i in range(self.columns)] for j in range(self.columns)]
         self.cellPopulation = self.initRandGrid()
         self.setCellColor("rand")
@@ -71,6 +75,10 @@ class CellGrid():
     def getCellPopulation(self) -> int:
         return self.cellPopulation
 
+    def setPopulation(self, population) -> None:
+        self.colors = populations[population]
+
+    # TODO: Unused function to remove
     def outputCellGrid(self) -> str:
         output = ""
         for row in range(self.columns):
@@ -97,6 +105,7 @@ class CellGrid():
 
     def load(self, file) -> None:
         grid = json.load(file)
+        self.setPopulation(int(grid["grid-config"]["population"]) - 1)
         self.columns = int(grid["grid-config"]["columns"])
         self.cells = [[Cell() for i in range(self.columns)] for j in range(self.columns)]        
         self.loadGrid(grid["cell-grid"])
@@ -124,6 +133,7 @@ class CellGrid():
                 else:
                     self.cells[row][col].isAlive = True
                     self.cells[row][col].dna = int(line[col])
+                    self.cells[row][col].color = self.colors[int(line[col])]
                     self.cells[row][col].stateHasChanged = True
 
     def nextGeneration(self) -> None:
