@@ -1,12 +1,13 @@
 # from graphics import *
 from random import *
 from copy import *
+import json
 
+# TODO: To use @dataclass decorator for Cell class
 class Cell():
     def __init__(self):
         self.isAlive = False
         self.stateHasChanged = False
-        # self.color = [0, 0, 0]
         self.color = "#000000"
         self.dna = 0
         # self.dna = []
@@ -71,7 +72,7 @@ class CellGrid():
         return self.cellPopulation
 
     def outputCellGrid(self) -> str:
-        output = "\n---=== Cell population Start ===---\n"
+        output = ""
         for row in range(self.columns):
             line = ""
             for col in range(self.columns):
@@ -81,8 +82,49 @@ class CellGrid():
                     cell = str(self.cells[row][col].dna)
                 line += cell + "."
             output += line + "\n"
-        output += "---=== Cell population End ===---"
         return output
+
+    def dump(self, file) -> None:
+        grid = dict()
+        grid["grid-config"] = {
+            "columns":self.columns,
+            "population":len(self.colors)
+        }
+        grid["cell-grid"] = {
+            "grid":self.dumpGrid()
+        }
+        json.dump(grid, fp=file, indent=0)
+
+    def load(self, file) -> None:
+        grid = json.load(file)
+        self.columns = int(grid["grid-config"]["columns"])
+        self.cells = [[Cell() for i in range(self.columns)] for j in range(self.columns)]        
+        self.loadGrid(grid["cell-grid"])
+        
+    def dumpGrid(self) -> list:
+        grid = []
+        for row in range(self.columns):
+            line = ""
+            for col in range(self.columns):
+                cell = "."
+                if self.cells[row][col].isAlive:
+                    # cell = str(self.cells[row][col].dna[0])
+                    cell = str(self.cells[row][col].dna)
+                line += cell #+ "."  
+            grid.append(line)
+        return grid
+
+    def loadGrid(self, grid) -> None:
+        for row in range(self.columns):
+            for col in range(self.columns):
+                line = grid["grid"][row]
+                if line[col] == ".":
+                    self.cells[row][col].isAlive = False
+                    self.cells[row][col].stateHasChanged = True
+                else:
+                    self.cells[row][col].isAlive = True
+                    self.cells[row][col].dna = int(line[col])
+                    self.cells[row][col].stateHasChanged = True
 
     def nextGeneration(self) -> None:
         # Running Game of life rules

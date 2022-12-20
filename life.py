@@ -3,6 +3,8 @@ import sys, os
 from datetime import datetime
 from random import *
 import time
+import json
+import yaml
 
 # PyQT imports
 from PyQt6.QtCore import Qt, QObject, QThread, pyqtSignal, QSize, QReadWriteLock, QSize
@@ -13,6 +15,7 @@ from PyQt6.QtWidgets import (
     QToolBar,
     QStatusBar,
     QComboBox,
+    QFileDialog
 )
 
 # Game of Life related class imports
@@ -29,9 +32,9 @@ tempo = 0.1
 confFilePath = "./config/"
 if not os.path.exists(confFilePath):
     os.makedirs(confFilePath)
-now = datetime.now()
-fileName = "./config/" + now.strftime("%Y%m%d-%H%M%S") + " - GOL Config.txt"
-confFile = open(fileName, "w")
+# now = datetime.now()
+# fileName = "./config/" + now.strftime("%Y%m%d-%H%M%S") + " - GOL Config.txt"
+# confFile = open(fileName, "w")
 
 # Create the grid containing the cells and initialize all cells
 cellGrid = CellGrid(columns, colors[0])
@@ -70,6 +73,7 @@ class GolWindow(QMainWindow):
         self.title = "Conway's Game of Life"
         self.top= 550
         self.left= 50
+        # TODO: Remove columns from the app properties. This property belongs to the CellGrid
         self.columns = columns
         self.cellSize = int(800 / self.columns)
         self.width = self.columns * self.cellSize
@@ -90,9 +94,9 @@ class GolWindow(QMainWindow):
         self.resetGen = QAction(QIcon("./icons/arrow-circle-225-left.png"), "Reset", self)
         self.resetGen.triggered.connect(self.onClickReset)      
         self.openFile = QAction(QIcon("./icons/folder-horizontal-open.png"), "Open grid", self)
-        self.openFile.triggered.connect(self.onMyToolBarButtonClick)    
+        self.openFile.triggered.connect(self.onClickOpenFile)    
         self.saveFile = QAction(QIcon("./icons/disk.png"), "Save current grid", self)
-        self.saveFile.triggered.connect(self.onMyToolBarButtonClick)                     
+        self.saveFile.triggered.connect(self.onClickSaveFile)                     
         
         # Define the combo boxes
         self.populationComboBox = QComboBox(self)
@@ -133,13 +137,11 @@ class GolWindow(QMainWindow):
 
     def onChangeGridSize(self, index):
         self.columns = (20 * index) + 10
+        # TODO: Below 4 lines of code should be placedin a function
         self.cellSize = int(800 / self.columns)
         self.setFixedSize(QSize((self.columns * self.cellSize), ((self.columns * self.cellSize) + (self.toolbarHeight + self.statusbarHeight)))) 
         cellGrid.reInit(self.columns, colors[self.populationComboBox.currentIndex()])
         self.update()
-
-    def onMyToolBarButtonClick(self, s):
-        print("click", s)
 
     def onClickStopBtn(self, s):
         self.worker.shouldRun = False
@@ -153,6 +155,25 @@ class GolWindow(QMainWindow):
         cellGrid.initRandGrid()
         cellGrid.setCellColor("rand")
         self.update()
+
+    def onClickOpenFile(self, s):
+        fileName = QFileDialog.getOpenFileName(self, 'Open file', confFilePath, "Json Files (*.json)")
+        if fileName[0]:
+            with open(fileName[0], 'r', encoding ='utf8') as file:
+                cellGrid.load(file)
+                self.columns = cellGrid.columns
+                self.cellSize = int(800 / self.columns)
+                self.setFixedSize(QSize((self.columns * self.cellSize), ((self.columns * self.cellSize) + (self.toolbarHeight + self.statusbarHeight))))  
+                self.update()               
+                file.close()
+
+
+    def onClickSaveFile(self, s):
+        fileName = QFileDialog.getSaveFileName(self, 'Save file', confFilePath, "Json Files (*.json)")
+        if fileName[0]:
+            with open(fileName[0], 'w', encoding ='utf8') as file:
+                cellGrid.dump(file)
+                file.close()
 
     def changeToolbarBtnsState(self, state: bool):
         # Disable controls in toolbar
@@ -185,7 +206,7 @@ class GolWindow(QMainWindow):
     def paintEvent(self, a0: QPaintEvent) -> None:
         painter = QPainter(self)
         painter.setPen(QPen(QColor("#FFFFFF") , 1, Qt.PenStyle.SolidLine))
-        painter.setBrush(QBrush(QColor("#0000FF"), Qt.BrushStyle.SolidPattern))
+        # painter.setBrush(QBrush(QColor("#0000FF"), Qt.BrushStyle.SolidPattern))
 
         lock.lockForRead()
         for row in range(self.columns):
@@ -195,6 +216,7 @@ class GolWindow(QMainWindow):
                     color = cell.color
                 elif cell.isAlive == False:
                     color = "#FFFFFF"
+                # if cell.stateHasChanged == True:
                 painter.setBrush(QBrush(QColor(color), Qt.BrushStyle.SolidPattern))
                 painter.drawRect((self.cellSize * row), self.toolbarHeight + (self.cellSize * col), self.cellSize, self.cellSize)
         lock.unlock()
