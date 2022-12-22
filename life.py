@@ -159,7 +159,7 @@ class GolWindow(QMainWindow):
 
     def onChangePopulation(self, index):
         self.cellGrid.setPopulation(index)
-        self.cellGrid.setCellColor("rand")
+        self.cellGrid.setCellColor()
         self.update()
 
     def onChangeGridSize(self, index):
@@ -178,7 +178,7 @@ class GolWindow(QMainWindow):
 
     def onClickReset(self, s):
         self.cellGrid.initRandGrid()
-        self.cellGrid.setCellColor("rand")
+        self.cellGrid.setCellColor()
         self.update()
 
     def onClickOpenFile(self, s):

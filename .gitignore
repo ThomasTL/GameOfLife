@@ -3,5 +3,6 @@
 /config
 /config2
 /config.bak
+/gol-files
 graphics_demo.py
 life.py.bak

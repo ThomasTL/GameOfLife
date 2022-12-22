@@ -37,7 +37,7 @@ class CellGrid():
         self.setPopulation(population)
         self.cells = [[Cell() for i in range(self.columns)] for j in range(self.columns)]
         self.cellPopulation = self.initRandGrid()
-        self.setCellColor("rand")
+        self.setCellColor()
 
     def initRandGrid(self) -> int:
         cellPopulation = 0
@@ -54,17 +54,17 @@ class CellGrid():
                         self.cells[row][col].stateHasChanged = True
         return cellPopulation    
 
-    def setCellColor(self, distMode: str) -> None:
+    def setCellColor(self) -> None:
         for row in range(self.columns):
             for col in range(self.columns):
                 if row != 0 and row != self.columns - 1 and col != 0 and col != self.columns - 1:
-                    if distMode == "rand":
-                        if self.cells[row][col].isAlive:
-                            colorId = randint(a=0, b=len(self.colors) - 1)
-                            self.cells[row][col].color = self.colors[colorId]
-                            self.cells[row][col].dna = colorId
-                    elif distMode == "equal":
-                        pass
+                    # if distMode == "rand":
+                    if self.cells[row][col].isAlive:
+                        colorId = randint(a=0, b=len(self.colors) - 1)
+                        self.cells[row][col].color = self.colors[colorId]
+                        self.cells[row][col].dna = colorId
+                    # elif distMode == "equal":
+                        # pass
 
     def getCell(self, col: int, row: int) -> Cell:
         return self.cells[row][col]
@@ -82,7 +82,7 @@ class CellGrid():
             "population":len(self.colors)
         }
         grid["cell-grid"] = {
-            "grid":self.dumpGrid()
+            "grid":self.dumpGridl()
         }
         return grid
 
@@ -90,9 +90,9 @@ class CellGrid():
         self.setPopulation(int(grid["grid-config"]["population"]) - 1)
         self.columns = int(grid["grid-config"]["columns"])
         self.cells = [[Cell() for i in range(self.columns)] for j in range(self.columns)]        
-        self.loadGrid(grid["cell-grid"])
+        self.loadGridl(grid["cell-grid"]["grid"])
         
-    def dumpGrid(self) -> list:
+    def dumpGridl(self) -> list:
         grid = []
         for row in range(self.columns):
             line = ""
@@ -104,10 +104,10 @@ class CellGrid():
             grid.append(line)
         return grid
 
-    def loadGrid(self, grid) -> None:
+    def loadGridl(self, grid: list) -> None:
         for row in range(self.columns):
             for col in range(self.columns):
-                line = grid["grid"][row]
+                line = grid[row]
                 if line[col] == ".":
                     self.cells[row][col].isAlive = False
                     self.cells[row][col].stateHasChanged = True
