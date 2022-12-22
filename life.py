@@ -152,7 +152,7 @@ class GolWindow(QMainWindow):
             index = 3
         elif columns == 90:
             index = 4
-        elif columns == 110:
+        elif columns == 100:
             index = 5
         return index
 
@@ -192,8 +192,8 @@ class GolWindow(QMainWindow):
                 self.setWindowSize()
                 self.populationComboBox.setCurrentIndex(int(grid["grid-config"]["population"]) - 1)
                 self.gridSizeComboBox.setCurrentIndex(self.getIndexFromColumns(int(grid["grid-config"]["columns"])))
+                file.close()                
                 self.update()               
-                file.close()
 
     def onClickSaveFile(self, s):
         global filePath
