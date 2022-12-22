@@ -27,9 +27,9 @@ confFilePath = "./gol-files/"
 if not os.path.exists(confFilePath):
     os.makedirs(confFilePath)
 
-# Create the grid containing the cells and initialize all cells
+# Starting grid size
 columns = 70
-cellGrid = CellGrid(columns, 0)
+
 # Create a read/write lock needed to synchronize next generation calculation and refreshing the UI
 lock = QReadWriteLock() 
 
@@ -60,9 +60,9 @@ class GolWindow(QMainWindow):
     statusbarHeight = 25
     maxWindowSize = 700
 
-    def __init__(self, cellGrid: CellGrid, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-        self.cellGrid = cellGrid
+        self.cellGrid = CellGrid(columns, 0)
         self.setupUi()
 
     def setupUi(self):
@@ -249,6 +249,6 @@ class GolWindow(QMainWindow):
 
 # Run the Qt app
 app = QApplication(sys.argv)
-gol = GolWindow(cellGrid)
+gol = GolWindow()
 gol.show()
 sys.exit(app.exec())
