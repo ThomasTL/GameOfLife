@@ -1,6 +1,5 @@
 # System imports
 import sys, os
-# from datetime import datetime
 from random import *
 import time
 import json
