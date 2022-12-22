@@ -1,10 +1,9 @@
 # System imports
 import sys, os
-from datetime import datetime
+# from datetime import datetime
 from random import *
 import time
 import json
-import yaml
 
 # PyQT imports
 from PyQt6.QtCore import Qt, QObject, QThread, pyqtSignal, QSize, QReadWriteLock, QSize
@@ -18,25 +17,19 @@ from PyQt6.QtWidgets import (
     QFileDialog
 )
 
+# TODO: Need to add some meaningful comments
+
 # Game of Life related class imports
 from cell import *
 
-# Game of Life constant parameters
-columns = 70
-genNumber = 10000
-# colors = [["#000000"], ["#0000FF", "#00FF00"], ["#0000FF", "#00FF00", "#FF0000"]]
-tempo = 0.1
-
 # Create the log path and log file to save the Game of Life starting parameters
 # if it doesn't exist
-confFilePath = "./config/"
+confFilePath = "./gol-files/"
 if not os.path.exists(confFilePath):
     os.makedirs(confFilePath)
-# now = datetime.now()
-# fileName = "./config/" + now.strftime("%Y%m%d-%H%M%S") + " - GOL Config.txt"
-# confFile = open(fileName, "w")
 
 # Create the grid containing the cells and initialize all cells
+columns = 70
 cellGrid = CellGrid(columns, 0)
 # Create a read/write lock needed to synchronize next generation calculation and refreshing the UI
 lock = QReadWriteLock() 
@@ -45,45 +38,43 @@ class CalcGenerationsWorker(QObject):
     finished = pyqtSignal()
     drawGeneration = pyqtSignal(int)
     shouldRun = False
+    genNumber = 10000
+    tempo = 0.1
 
-    def __init__(self):
+    def __init__(self, cellGrid: CellGrid):
         super().__init__()
+        self.cellGrid = cellGrid
 
     def run(self):
-        for gen in range(genNumber):
+        for gen in range(self.genNumber):
             if self.shouldRun == False:
                 break
             lock.lockForWrite()
-            cellGrid.nextGeneration()
+            self.cellGrid.nextGeneration()
             lock.unlock()
             self.drawGeneration.emit(gen + 1)            
-            time.sleep(tempo)
+            time.sleep(self.tempo)
         self.finished.emit()
 
 class GolWindow(QMainWindow):
     toolbarHeight = 26
     statusbarHeight = 25
+    maxWindowSize = 700
 
-    def __init__(self, parent=None):
+    def __init__(self, cellGrid: CellGrid, parent=None):
         super().__init__(parent)
+        self.cellGrid = cellGrid
         self.setupUi()
 
     def setupUi(self):
         super().__init__()
         self.title = "Conway's Game of Life"
-        self.top= 550
-        self.left= 50
-        # TODO: Remove columns from the app properties. This property belongs to the CellGrid
-        self.columns = columns
-        self.cellSize = int(800 / self.columns)
-        self.width = self.columns * self.cellSize
-        self.height = (self.columns * self.cellSize) + (self.toolbarHeight + self.statusbarHeight)        
+        self.columns = self.cellGrid.columns
+        self.setWindowSize()
         self.InitWindow()
 
     def InitWindow(self):
         self.setWindowTitle(self.title)        
-        self.setGeometry(self.top, self.left, self.width, self.height)
-        self.setFixedSize(self.size()) 
 
         # Define actions to be used in toolbar and menus
         self.runGen = QAction(QIcon("./icons/control.png"), "Run", self)
@@ -104,9 +95,9 @@ class GolWindow(QMainWindow):
         self.populationComboBox.addItems(populationList)
         self.populationComboBox.currentIndexChanged.connect(self.onChangePopulation)
         self.gridSizeComboBox = QComboBox(self)
-        gridSizeList = ["10 x 10", "30 x 30", "50 x 50", "70 x 70", "90 x 90", "110 x 110"]
+        gridSizeList = ["10 x 10", "30 x 30", "50 x 50", "70 x 70", "90 x 90", "100 x 100"]
         self.gridSizeComboBox.addItems(gridSizeList)
-        self.gridSizeComboBox.setCurrentIndex(3)
+        self.gridSizeComboBox.setCurrentIndex(self.getIndexFromColumns(self.cellGrid.columns))
         self.gridSizeComboBox.currentIndexChanged.connect(self.onChangeGridSize)
 
         # Toobar initialization
@@ -130,18 +121,51 @@ class GolWindow(QMainWindow):
 
         self.show()        
 
+    def setWindowSize(self) -> None:
+        self.cellSize = int(self.maxWindowSize / self.columns)
+        self.setFixedSize(QSize((self.columns * self.cellSize), ((self.columns * self.cellSize) + (self.toolbarHeight + self.statusbarHeight))))     
+
+    def getColumnsFromIndex(self, index) -> int:
+        columns = 10
+        if index == 0:
+            columns = 10
+        elif index == 1:
+            columns = 30
+        elif index == 2:
+            columns = 50
+        elif index == 3:
+            columns = 70
+        elif index == 4:
+            columns = 90
+        elif index == 5:
+            columns = 100
+        return columns       
+
+    def getIndexFromColumns(self, columns) -> int:
+        index = 0
+        if columns == 10:
+            index = 0
+        elif columns == 30:
+            index = 1
+        elif columns == 50:
+            index = 2
+        elif columns == 70:
+            index = 3
+        elif columns == 90:
+            index = 4
+        elif columns == 110:
+            index = 5
+        return index
+
     def onChangePopulation(self, index):
-        # cellGrid.colors = colors[index]
-        cellGrid.setPopulation(index)
-        cellGrid.setCellColor("rand")
+        self.cellGrid.setPopulation(index)
+        self.cellGrid.setCellColor("rand")
         self.update()
 
     def onChangeGridSize(self, index):
-        self.columns = (20 * index) + 10
-        # TODO: Below 4 lines of code should be placedin a function
-        self.cellSize = int(800 / self.columns)
-        self.setFixedSize(QSize((self.columns * self.cellSize), ((self.columns * self.cellSize) + (self.toolbarHeight + self.statusbarHeight)))) 
-        cellGrid.reInit(self.columns, self.populationComboBox.currentIndex())
+        self.columns = self.getColumnsFromIndex(index)
+        self.setWindowSize()
+        self.cellGrid.reInit(self.columns, self.populationComboBox.currentIndex())
         self.update()
 
     def onClickStopBtn(self, s):
@@ -153,30 +177,29 @@ class GolWindow(QMainWindow):
         self.runGenerations()
 
     def onClickReset(self, s):
-        cellGrid.initRandGrid()
-        cellGrid.setCellColor("rand")
+        self.cellGrid.initRandGrid()
+        self.cellGrid.setCellColor("rand")
         self.update()
 
     def onClickOpenFile(self, s):
         fileName = QFileDialog.getOpenFileName(self, 'Open file', confFilePath, "Json Files (*.json)")
         if fileName[0]:
             with open(fileName[0], 'r', encoding ='utf8') as file:
-                cellGrid.load(file)
-                self.columns = cellGrid.columns
-                self.cellSize = int(800 / self.columns)
-                self.setFixedSize(QSize((self.columns * self.cellSize), ((self.columns * self.cellSize) + (self.toolbarHeight + self.statusbarHeight))))  
-                # TODO: Show to correct combo box current value after loading new file data
-                # self.populationComboBox.setCurrentIndex()
-                # self.gridSizeComboBox.setCurrentIndex()
+                grid = json.load(file)
+                self.cellGrid.loadd(grid)
+                self.columns = self.cellGrid.columns
+                self.setWindowSize()
+                self.populationComboBox.setCurrentIndex(int(grid["grid-config"]["population"]) - 1)
+                self.gridSizeComboBox.setCurrentIndex(self.getIndexFromColumns(int(grid["grid-config"]["columns"])))
                 self.update()               
                 file.close()
-
 
     def onClickSaveFile(self, s):
         fileName = QFileDialog.getSaveFileName(self, 'Save file', confFilePath, "Json Files (*.json)")
         if fileName[0]:
             with open(fileName[0], 'w', encoding ='utf8') as file:
-                cellGrid.dump(file)
+                grid = self.cellGrid.dumpd()
+                json.dump(grid, fp=file, indent=0)
                 file.close()
 
     def changeToolbarBtnsState(self, state: bool):
@@ -197,7 +220,7 @@ class GolWindow(QMainWindow):
 
     def runGenerations(self):
         self.thread = QThread()
-        self.worker = CalcGenerationsWorker()
+        self.worker = CalcGenerationsWorker(self.cellGrid)
         self.worker.shouldRun = True
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
@@ -210,12 +233,11 @@ class GolWindow(QMainWindow):
     def paintEvent(self, a0: QPaintEvent) -> None:
         painter = QPainter(self)
         painter.setPen(QPen(QColor("#FFFFFF") , 1, Qt.PenStyle.SolidLine))
-        # painter.setBrush(QBrush(QColor("#0000FF"), Qt.BrushStyle.SolidPattern))
 
         lock.lockForRead()
         for row in range(self.columns):
             for col in range(self.columns):
-                cell = cellGrid.getCell(row=row, col=col)
+                cell = self.cellGrid.getCell(row=row, col=col)
                 if cell.isAlive == True:
                     color = cell.color
                 elif cell.isAlive == False:
@@ -226,21 +248,8 @@ class GolWindow(QMainWindow):
         lock.unlock()
         return super().paintEvent(a0)        
 
-# Save the starting configuration in a file
-# totalPopulation = cellGrid.getCellPopulation()
-# gridSizeStr = "Grid size: " + str(columns) + " x " + str(columns)
-# populationStr = "Maximum population: " + str(columns * columns) + " cells"
-# cellPopulationStr = "Total cell population: " + str(totalPopulation) + " cells"
-# percentOccupancyStr = "Percentage occupancy: " + str(int((totalPopulation / (columns * columns)) * 100)) + "%"
-# confFile.write(gridSizeStr + "\n")
-# confFile.write(populationStr + "\n")
-# confFile.write(cellPopulationStr + "\n")
-# confFile.write(percentOccupancyStr + "\n")
-# confFile.write(cellGrid.outputCellGrid())    
-# confFile.close()
-
 # Run the Qt app
 app = QApplication(sys.argv)
-gol = GolWindow()
+gol = GolWindow(cellGrid)
 gol.show()
 sys.exit(app.exec())

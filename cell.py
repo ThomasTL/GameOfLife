@@ -1,9 +1,9 @@
-# from graphics import *
 from random import *
 from copy import *
-import json
 
 populations = [["#000000"], ["#0000FF", "#00FF00"], ["#0000FF", "#00FF00", "#FF0000"]]
+
+# TODO: Need to add some meaningful comments
 
 # TODO: To use @dataclass decorator for Cell class
 class Cell():
@@ -12,7 +12,6 @@ class Cell():
         self.stateHasChanged = False
         self.color = "#000000"
         self.dna = 0
-        # self.dna = []
 
     def addDna(self, dna: int) -> None:
         self.dna.append(dna)
@@ -26,16 +25,15 @@ class Cell():
 
 class CellGrid():
     def __init__(self, columns, population) -> None:
-        self.columns = columns
-        self.setPopulation(population)
-        # self.colors = populations[population]
-        self.cells = [[Cell() for i in range(self.columns)] for j in range(self.columns)]
-        self.cellPopulation = self.initRandGrid()
-        self.setCellColor("rand")
+        self.reInit(columns, population)
+        # self.columns = columns
+        # self.setPopulation(population)
+        # self.cells = [[Cell() for i in range(self.columns)] for j in range(self.columns)]
+        # self.cellPopulation = self.initRandGrid()
+        # self.setCellColor("rand")
     
     def reInit(self, columns, population):
         self.columns = columns
-        # self.colors = colors
         self.setPopulation(population)
         self.cells = [[Cell() for i in range(self.columns)] for j in range(self.columns)]
         self.cellPopulation = self.initRandGrid()
@@ -65,7 +63,6 @@ class CellGrid():
                             colorId = randint(a=0, b=len(self.colors) - 1)
                             self.cells[row][col].color = self.colors[colorId]
                             self.cells[row][col].dna = colorId
-                            # self.cells[row][col].addDna(colorId)
                     elif distMode == "equal":
                         pass
 
@@ -78,21 +75,7 @@ class CellGrid():
     def setPopulation(self, population) -> None:
         self.colors = populations[population]
 
-    # TODO: Unused function to remove
-    def outputCellGrid(self) -> str:
-        output = ""
-        for row in range(self.columns):
-            line = ""
-            for col in range(self.columns):
-                cell = "."
-                if self.cells[row][col].isAlive:
-                    # cell = str(self.cells[row][col].dna[0])
-                    cell = str(self.cells[row][col].dna)
-                line += cell + "."
-            output += line + "\n"
-        return output
-
-    def dump(self, file) -> None:
+    def dumpd(self) -> dict:
         grid = dict()
         grid["grid-config"] = {
             "columns":self.columns,
@@ -101,10 +84,9 @@ class CellGrid():
         grid["cell-grid"] = {
             "grid":self.dumpGrid()
         }
-        json.dump(grid, fp=file, indent=0)
+        return grid
 
-    def load(self, file) -> None:
-        grid = json.load(file)
+    def loadd(self, grid: dict) -> None:
         self.setPopulation(int(grid["grid-config"]["population"]) - 1)
         self.columns = int(grid["grid-config"]["columns"])
         self.cells = [[Cell() for i in range(self.columns)] for j in range(self.columns)]        
@@ -117,9 +99,8 @@ class CellGrid():
             for col in range(self.columns):
                 cell = "."
                 if self.cells[row][col].isAlive:
-                    # cell = str(self.cells[row][col].dna[0])
                     cell = str(self.cells[row][col].dna)
-                line += cell #+ "."  
+                line += cell  
             grid.append(line)
         return grid
 
