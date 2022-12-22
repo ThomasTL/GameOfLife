@@ -23,9 +23,9 @@ from cell import *
 
 # Create the log path and log file to save the Game of Life starting parameters
 # if it doesn't exist
-confFilePath = "./gol-files/"
-if not os.path.exists(confFilePath):
-    os.makedirs(confFilePath)
+filePath = "./gol-files/"
+if not os.path.exists(filePath):
+    os.makedirs(filePath)
 
 # Starting grid size
 columns = 70
@@ -181,8 +181,10 @@ class GolWindow(QMainWindow):
         self.update()
 
     def onClickOpenFile(self, s):
-        fileName = QFileDialog.getOpenFileName(self, 'Open file', confFilePath, "Json Files (*.json)")
+        global filePath
+        fileName = QFileDialog.getOpenFileName(self, 'Open file', filePath, "Json Files (*.json)")
         if fileName[0]:
+            filePath = os.path.dirname(os.path.abspath(fileName[0]))
             with open(fileName[0], 'r', encoding ='utf8') as file:
                 grid = json.load(file)
                 self.cellGrid.loadd(grid)
@@ -194,8 +196,10 @@ class GolWindow(QMainWindow):
                 file.close()
 
     def onClickSaveFile(self, s):
-        fileName = QFileDialog.getSaveFileName(self, 'Save file', confFilePath, "Json Files (*.json)")
+        global filePath
+        fileName = QFileDialog.getSaveFileName(self, 'Save file', filePath, "Json Files (*.json)")
         if fileName[0]:
+            filePath = os.path.dirname(os.path.abspath(fileName[0]))
             with open(fileName[0], 'w', encoding ='utf8') as file:
                 grid = self.cellGrid.dumpd()
                 json.dump(grid, fp=file, indent=0)
