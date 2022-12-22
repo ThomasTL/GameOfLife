@@ -26,11 +26,6 @@ class Cell():
 class CellGrid():
     def __init__(self, columns, population) -> None:
         self.reInit(columns, population)
-        # self.columns = columns
-        # self.setPopulation(population)
-        # self.cells = [[Cell() for i in range(self.columns)] for j in range(self.columns)]
-        # self.cellPopulation = self.initRandGrid()
-        # self.setCellColor("rand")
     
     def reInit(self, columns, population):
         self.columns = columns
@@ -58,13 +53,10 @@ class CellGrid():
         for row in range(self.columns):
             for col in range(self.columns):
                 if row != 0 and row != self.columns - 1 and col != 0 and col != self.columns - 1:
-                    # if distMode == "rand":
                     if self.cells[row][col].isAlive:
                         colorId = randint(a=0, b=len(self.colors) - 1)
                         self.cells[row][col].color = self.colors[colorId]
                         self.cells[row][col].dna = colorId
-                    # elif distMode == "equal":
-                        # pass
 
     def getCell(self, col: int, row: int) -> Cell:
         return self.cells[row][col]

@@ -241,7 +241,6 @@ class GolWindow(QMainWindow):
                     color = cell.color
                 elif cell.isAlive == False:
                     color = "#FFFFFF"
-                # if cell.stateHasChanged == True:
                 painter.setBrush(QBrush(QColor(color), Qt.BrushStyle.SolidPattern))
                 painter.drawRect((self.cellSize * row), self.toolbarHeight + (self.cellSize * col), self.cellSize, self.cellSize)
         lock.unlock()
