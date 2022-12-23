@@ -190,10 +190,14 @@ class GolWindow(QMainWindow):
                 self.cellGrid.loadd(grid)
                 self.columns = self.cellGrid.columns
                 self.setWindowSize()
+                self.populationComboBox.blockSignals(True)
                 self.populationComboBox.setCurrentIndex(int(grid["grid-config"]["population"]) - 1)
-                self.gridSizeComboBox.setCurrentIndex(self.getIndexFromColumns(int(grid["grid-config"]["columns"])))
-                file.close()                
+                self.populationComboBox.blockSignals(False)
+                self.gridSizeComboBox.blockSignals(True)
+                self.gridSizeComboBox.setCurrentIndex(self.getIndexFromColumns(int(grid["grid-config"]["columns"])))   
+                self.gridSizeComboBox.blockSignals(False) 
                 self.update()               
+                file.close()                     
 
     def onClickSaveFile(self, s):
         global filePath
